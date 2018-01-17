@@ -1,0 +1,48 @@
+---
+
+- name: Delete a VIP, pool, pool members and nodes
+  hosts: F5
+  connection: local
+
+  vars_files:
+  - /home/ansible/ansible/playbooks/host_vars/bigip.yml
+
+  tasks:
+
+   - name: xls
+     xls_to_facts:
+        src: "loadbalancer2.xlsx"
+
+   - name: Delete a VIP
+     bigip_virtual_server:
+            server: "{{ ansible_host }}"
+            user: "{{ bigip_username }}"
+            password: "{{bigip_password}}"
+            validate_certs: "{{validate_certs}}"
+            name: "{{ item.virtual }}"
+            state: "absent"
+     delegate_to: localhost
+     with_items: "{{ spreadsheet_loadbalancer2 }}"
+
+   - name: Delete Pool
+     bigip_pool:
+            server: "{{ ansible_host }}"
+            user: "{{ bigip_username }}"
+            password: "{{bigip_password}}"
+            validate_certs: "{{validate_certs}}"
+            name: "{{ item.poolname }}"
+            state: "absent"
+            monitor_type: "and_list"
+            monitors:
+              - tcp
+     with_items: "{{ spreadsheet_loadbalancer2 }}"
+
+   - name: Delete Node
+     bigip_node:
+            server: "{{ ansible_host }}"
+            user: "{{ bigip_username }}"
+            password: "{{bigip_password}}"
+            name: "{{ item.nodename }}"
+            validate_certs: "{{validate_certs}}"
+            state: "absent"
+     with_items: "{{ spreadsheet_loadbalancer2 }}"

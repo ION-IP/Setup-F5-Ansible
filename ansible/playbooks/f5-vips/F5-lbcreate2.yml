@@ -1,0 +1,26 @@
+- name: Test bigip_facts
+  hosts: 192.168.244.171
+  connection: local
+
+  vars:
+
+
+  vars_files:
+    - /etc/ansible/host_vars/bigip.yml
+
+  tasks:
+
+    - name: xls
+      xls_to_facts:
+        src: "loadbalancer2.xlsx"
+
+    - name: Create Node
+      bigip_node:
+         server: "{{ ansible_host }}"
+         user: "{{ bigip_username }}"
+         password: "{{bigip_password}}"
+         validate_certs: "{{validate_certs}}"
+         partition: "{{ item.partition }}"
+         name: "{{ item.nodename }}"
+         host: "{{ item.nodehost }}"
+      with_items: "{{ spreadsheet_loadbalancer2 }}"

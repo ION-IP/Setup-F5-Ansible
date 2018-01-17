@@ -1,0 +1,76 @@
+- name: Test bigip_facts
+  hosts: F5
+  connection: local
+
+  vars:
+
+
+  vars_files:
+    - /home/ansible/ansible/playbooks/host_vars/bigip.yml
+
+  tasks:
+
+    - name: xls
+      xls_to_facts:
+        src: "loadbalancer2.xlsx"
+
+    - name: Create Pool
+      bigip_pool:
+         server: "{{ ansible_host }}"
+         user: "{{ bigip_username }}"
+         password: "{{bigip_password}}"
+         validate_certs: "{{validate_certs}}"
+         name: "{{item.poolname}}"
+         partition: "{{ item.partition }}"
+         lb_method: "{{ item.method }}"
+         slow_ramp_time: "120"
+         monitor_type: "and_list"
+         monitors:
+             - "{{ item.poolhealth }}"
+      delegate_to: localhost
+      with_items: "{{ spreadsheet_loadbalancer2 }}"
+
+    - name: Create Node
+      bigip_node:
+         server: "{{ ansible_host }}"
+         user: "{{ bigip_username }}"
+         password: "{{bigip_password}}"
+         validate_certs: "{{validate_certs}}"
+         partition: "{{ item.partition }}"
+         name: "{{ item.nodename }}"
+         host: "{{ item.nodehost }}"
+      with_items: "{{ spreadsheet_loadbalancer2 }}"
+
+    - name: Add nodes to pool
+      bigip_pool_member:
+         server: "{{ ansible_host }}"
+         user: "{{ bigip_username }}"
+         password: "{{bigip_password}}"
+         validate_certs: "{{validate_certs}}"
+         description: "webserver-1"
+         host: "{{ item.nodehost }}"
+         name: "{{ item.nodename }}"
+         pool: "{{ item.poolname }}"
+         port: "{{ item.poolport }}"
+      delegate_to: localhost
+      with_items: "{{ spreadsheet_loadbalancer2 }}"
+
+    - name: Create a VIP
+      bigip_virtual_server:
+         server: "{{ ansible_host }}"
+         user: "{{ bigip_username }}"
+         password: "{{bigip_password}}"
+         validate_certs: "{{validate_certs}}"
+         name: "{{ item.virtual }}"
+         destination: "{{ item.destination }}"
+         pool: "{{ item.poolname }}"
+         port: "{{ item.virtualport }}"
+         snat: "{{ item.snat }}"
+         partition: "{{ item.partition }}"
+         all_profiles:
+             - "{{ item.profileclient }}"
+             - "{{ item.profilehttp }}"
+             - "{{ item.sslprofileclient }}"
+         default_persistence_profile: "{{ item.defaultpresistenceprofile }}"
+      delegate_to: localhost
+      with_items: "{{ spreadsheet_loadbalancer2 }}"

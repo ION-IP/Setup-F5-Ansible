@@ -1,0 +1,17 @@
+- name: Test bigip_facts
+  hosts: 10.60.0.6
+  connection: local
+
+  vars_files:
+    - /etc/ansible/host_vars/bigip.yml
+
+  tasks:
+
+   - name: Collect BIG-IP facts
+     bigip_facts:
+       server: "{{ ansible_host }}"
+       user: "{{ bigip_username }}"
+       password: "{{bigip_password}}"
+       validate_certs: "{{validate_certs}}"
+       include: "interface"
+     delegate_to: localhost
