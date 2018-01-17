@@ -4,4 +4,3 @@ bigip_username: "ansible"
 bigip_password: "ansible"
 bigip_port: 443
 validate_certs: "false"
-ansible_host: "10.60.0.6"
