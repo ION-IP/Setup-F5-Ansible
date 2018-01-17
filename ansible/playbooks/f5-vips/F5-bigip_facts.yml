@@ -1,5 +1,5 @@
 - name: Test bigip_facts
-  hosts: 10.60.0.6
+  hosts: F5
   connection: local
 
   vars_files:
